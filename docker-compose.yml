@@ -121,3 +121,31 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 2
     volumes:
     - ./jmx-exporter:/usr/share/jmx_exporter/
+
+
+  producer:
+    build: ./sample-application/producer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka-1:9092, kafka-2:9092, kafka-3:9092"
+      TOPIC: "sample"
+      REPLICATION_FACTOR: 3
+      NUMBER_OF_PARTITIONS: 2
+      MESSAGE_BACKOFF: 1000 # Frequency of message injection
+      KAFKA_ACKS: "all" # default: "1"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+  consumer:
+    build: ./sample-application/consumer
+    hostname: consumer-1
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka-1:9092, kafka-2:9092, kafka-3:9092"
+      TOPIC: "sample"
+      CHECK_GAPS: "false"
+      COMMIT_STRATEGY: "AUTO_COMMIT" # possible values AUTO_COMMIT or PER_BATCH or PER_MESSAGES
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
